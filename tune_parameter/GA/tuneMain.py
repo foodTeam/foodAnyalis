@@ -7,10 +7,10 @@ import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 
-generations = 50   # 繁殖代数 100
-pop_size = 100      # 种群数量  500
+generations = 10   # 繁殖代数 100
+pop_size = 20      # 种群数量  500
 max_value = 10      # 基因中允许出现的最大值  
-chrom_length = 8       # 染色体长度  
+chrom_length = 8    # 染色体长度  
 pc = 0.6            # 交配概率  
 pm = 0.01           # 变异概率  
 results = [[]]      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
@@ -40,6 +40,7 @@ def randomForest(n_estimators_value, max_depth_value):
     train = train.drop('Kind', axis=1)  # 删除训练集的类标
     val = val.drop('Kind', axis=1)  # 删除测试集的类标
 
+    # 防止出现树的棵数或者基分类器个数出现0的情况，可以处理为1
     if n_estimators_value == 0:
         n_estimators_value = 1;
     if max_depth_value == 0:
@@ -238,4 +239,6 @@ if __name__ == '__main__':
         selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
         crossover(pop, pc) #交叉繁殖
         mutation(pop, pc) #基因突变
-    print(results)
+    # print(results)
+    results.sort()
+    print(results[-1])
