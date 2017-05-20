@@ -8,15 +8,14 @@ from sklearn.grid_search import GridSearchCV   #Perforing grid search
 from sklearn.externals import joblib
 
 import matplotlib.pylab as plt
-#%matplotlib inline
 from matplotlib.pylab import rcParams
 rcParams['figure.figsize'] = 12, 4#配置画图参数
 
-#train = pd.read_csv('train_modified.csv')
 train = pd.read_csv('Data/train-gao.csv')
 target = 'Kind'
 IDcol = 'ID'
-plt.show()
+
+
 #建立XGBoost models 并进行交叉验证
 def modelfit(alg, dtrain, predictors,useTrainCV=True, cv_folds=5, early_stopping_rounds=50):
     if useTrainCV:
@@ -47,17 +46,26 @@ def modelfit(alg, dtrain, predictors,useTrainCV=True, cv_folds=5, early_stopping
     print cvresult
 #Choose all predictors except target & IDcols
 predictors = [x for x in train.columns if x not in [target,IDcol]]
-xgb1 = XGBClassifier(
- learning_rate =0.3,
- n_estimators=90,
- #max_depth=5,
- min_child_weight=1,
- gamma=0,
- subsample=0.6,
- colsample_bytree=0.9,
- objective= 'binary:logistic',
- nthread=4,
- scale_pos_weight=1,
- seed=27)
-modelfit(xgb1, train, predictors)
+
+
+
+
+
+def trainModel():
+
+
+if __name__ == '__main__':
+    xgb_model = XGBClassifier(
+        learning_rate =0.3,   # 学习率
+        n_estimators=90,  # 基分类器个数
+        max_depth=5,  # 最大树深
+        min_child_weight=1,  
+        gamma=0,
+        subsample=0.6,
+        colsample_bytree=0.9,
+        objective= 'binary:logistic',
+        nthread=4,
+        scale_pos_weight=1,
+        seed=27)
+    # modelfit(xgb1, train, predictors)
 

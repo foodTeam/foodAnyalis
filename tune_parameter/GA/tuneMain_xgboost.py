@@ -56,6 +56,58 @@ def randomForest(n_estimators_value, max_depth_value):
     roc_auc = metrics.roc_auc_score(val_y, predict_test)
     return roc_auc
 
+
+'''要调试的参数有：（参考：http://xgboost.readthedocs.io/en/latest/parameter.html）
+   tree_num：基树的棵数
+   eta: 学习率（learning_rate），默认值为0.3，范围[0,1]
+   max_depth: 最大树深，默认值为6
+   min_child_weight：默认值为1，范围[0, 正无穷]
+   gamma：默认值为0，min_split_loss，范围[0, 正无穷]
+   subsample：选择数据集百分之多少来训练，可以防止过拟合。默认值1，范围(0, 1]，理想值0.8
+   colsample_bytree：subsample ratio of columns when constructing each tree，默认值1，范围(0, 1]，理想值0.8
+   lambda：L2 regularization term on weights, increase this value will make model more conservative.
+   alpha：L1 regularization term on weights, increase this value will make model more conservative.
+'''
+def xgboostModel(tree_num, random_seed):
+    train_xy = loadFile("../../Data/train-gao.csv")
+    train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
+    # 将训练集划分成7:3（训练集与测试集比例）的比例
+    train, val = train_test_split(
+        train_xy, test_size=0.3, random_state=80)
+
+    train_y = train.Kind
+    train_x = train.drop('Kind', axis=1)
+    dtrain = xgb.DMatrix(train_x, label=train_y)
+
+    val_y = val.Kind
+    val_x = val.drop('Kind', axis=1)
+    dval = xgb.DMatrix(val_x)
+
+    params = {
+        'booster': 'gbtree',  # gbtree used
+        'objective': 'binary:logistic',
+        'early_stopping_rounds': 100,
+        # 'scale_pos_weight': 0.13,  # 正样本权重
+        'eval_metric': 'auc',
+        'eta': 0.02,
+        'max_depth': 8,
+        'min_child_weight': 3,
+        'gamma': 0.1,
+        'subsample': 0.8,
+        'colsample_bytree': 0.8,
+        'lambda': 550,
+        'alpha': 19,
+        'seed': random_seed,
+        'nthread': 3,
+        'silent': 1
+    }
+    model = xgb.train(params, dtrain, num_boost_round=tree_num)
+    predict_y = model.predict(dval, ntree_limit=model.best_ntree_limit)
+    roc_auc = metrics.roc_auc_score(val_y, predict_y)
+    return roc_auc
+
+
+
 def loadFile(filePath):
     fileData = pd.read_csv(filePath)
     return fileData
@@ -227,7 +279,7 @@ def mutation(pop, pm):
 
 
 if __name__ == '__main__':
-    # pop = geneEncoding(pop_size, chrom_length)
+    pop = geneEncoding(pop_size, chrom_length)
     for i in range(generations):
         print("第 " + str(i) + " 代开始繁殖......")
         obj_value = cal_obj_value(pop) # 计算目标函数值
@@ -245,3 +297,4 @@ if __name__ == '__main__':
     # print(results)
     results.sort()
     print(results[-1])
+    # print(xgboostModel(100, 12))
