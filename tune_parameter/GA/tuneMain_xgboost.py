@@ -1,77 +1,60 @@
 #coding=utf-8
+from __future__ import division
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import random
 import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
-from xgboost.sklearn import XGBClassifier
+# from xgboost.sklearn import XGBClassifier
 
 
-generations = 10   # 繁殖代数 100
-pop_size = 20      # 种群数量  500
+
+generations = 30   # 繁殖代数 100
+pop_size = 200      # 种群数量  500
 max_value = 10      # 基因中允许出现的最大值  
-chrom_length = 8    # 染色体长度  
+chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
 pm = 0.01           # 变异概率  
 results = [[]]      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
 fit_value = []      # 个体适应度  
 fit_mean = []       # 平均适应度 
-pop = [[0, 1, 0, 1, 0, 1, 0, 1] for i in range(pop_size)] # 初始化种群中所有个体的基因初始序列
+pop = [[0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] for i in range(pop_size)] # 初始化种群中所有个体的基因初始序列
 
+random_seed = 20
+cons_value = 0.19 / 31.99 # (0.20-0.01）/ (32 - 0.01)
 
-'''
-n_estimators 取 {10、20、30、40、50、60、70、80、90、100、110、120、130、140、150}
-max_depth 取 {1、2、3、4、5、6、7、8、9、10、11、12、13、14、15} 
-（1111，1111）基因组8位长
-'''
-def randomForest(n_estimators_value, max_depth_value):
-
-    # print("n_estimators_value: " + str(n_estimators_value))
-    # print("max_depth_value: " + str(max_depth_value))
-
-    train_xy = loadFile("../../Data/train-gao.csv")
-    train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
-    # 将训练集划分成7:3（训练集与测试集比例）的比例
-    train, val = train_test_split(
-        train_xy, test_size=0.3, random_state=80)
-    train_y = train['Kind']  # 训练集类标
-    val_y = val['Kind']  # 测试集类标
-
-    train = train.drop('Kind', axis=1)  # 删除训练集的类标
-    val = val.drop('Kind', axis=1)  # 删除测试集的类标
-
-    # 防止出现树的棵数或者基分类器个数出现0的情况，可以处理为1
-    if n_estimators_value == 0:
-        n_estimators_value = 1;
-    if max_depth_value == 0:
-        max_depth_value = 1;
-    rf = RandomForestClassifier(n_estimators=n_estimators_value,
-                                max_depth=max_depth_value,
-                                n_jobs=2)
-    rf.fit(train, train_y)  # 训练分类器
-    predict_test = rf.predict_proba(val)[:, 1]
-    roc_auc = metrics.roc_auc_score(val_y, predict_test)
-    return roc_auc
 
 
 '''要调试的参数有：（参考：http://xgboost.readthedocs.io/en/latest/parameter.html）
-   tree_num：基树的棵数
-   eta: 学习率（learning_rate），默认值为0.3，范围[0,1]
-   max_depth: 最大树深，默认值为6
-   min_child_weight：默认值为1，范围[0, 正无穷]
+   tree_num：基树的棵数   ----------------（要调的参数）
+   eta: 学习率（learning_rate），默认值为0.3，范围[0,1]  ----------------（要调的参数）
+   max_depth: 最大树深，默认值为6   ----------------（要调的参数）
+   min_child_weight：默认值为1，范围[0, 正无穷]，该参数值越小，越容易 overfitting，当它的值较大时，可以避免模型学习到局部的特殊样本。 ----------（要调的参数）
    gamma：默认值为0，min_split_loss，范围[0, 正无穷]
    subsample：选择数据集百分之多少来训练，可以防止过拟合。默认值1，范围(0, 1]，理想值0.8
-   colsample_bytree：subsample ratio of columns when constructing each tree，默认值1，范围(0, 1]，理想值0.8
-   lambda：L2 regularization term on weights, increase this value will make model more conservative.
-   alpha：L1 regularization term on weights, increase this value will make model more conservative.
+   colsample_bytree：subsample ratio of columns when constructing each tree，默认值1，范围(0, 1]，理想值0.8，太小的值会造成欠拟合
+   lambda：L2 regularization term on weights, increase this value will make model more conservative.参数值越大，模型越不容易过拟合
+   alpha：L1 regularization term on weights, increase this value will make model more conservative.参数值越大，模型越不容易过拟合
+
+   上述参数，要调的有4个，其他的采用理想值就可以
+   tree_num: [10、 20、 30、......150、160] 用4位二进制, 0000代表10
+   eta: [0.01, 0.02, 0.03, 0.04, 0.05, ...... 0.19, 0.20]   0.2/0.01=20份，用5位二进制表示足够（2的4次方<20<2的5次方）
+       00000 -----> 0.01
+       11111 -----> 0.20
+       0.01 + 对应十进制*（0.20-0.01）/ (2的5次方-0.01)
+   max_depth:[3、4、5、6、7、8、9、10]   用3位二进制
+   min_child_weight: [1, 2, 3, 4, 5, 6, 7, 8]  用3位二进制
+
+   示例：   0010,         01001,               010,      110  （共15位）
+         tree_num         eta               max_depth  min_child_weight
+        (1+2)*10=30  0.01+9*0.005939=0.06       3+2=5      1+6=7
 '''
-def xgboostModel(tree_num, random_seed):
+def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
     train_xy = loadFile("../../Data/train-gao.csv")
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
-    # 将训练集划分成7:3（训练集与测试集比例）的比例
+    # 将训练集划分成8:2（训练集与验证集比例）的比例
     train, val = train_test_split(
         train_xy, test_size=0.3, random_state=80)
 
@@ -89,9 +72,9 @@ def xgboostModel(tree_num, random_seed):
         'early_stopping_rounds': 100,
         # 'scale_pos_weight': 0.13,  # 正样本权重
         'eval_metric': 'auc',
-        'eta': 0.02,
-        'max_depth': 8,
-        'min_child_weight': 3,
+        'eta': eta,  # 0.02
+        'max_depth': max_depth, # 8
+        'min_child_weight': min_child_weight, # 3
         'gamma': 0.1,
         'subsample': 0.8,
         'colsample_bytree': 0.8,
@@ -129,34 +112,51 @@ def cal_obj_value(pop):
     variable = decodechrom(pop)
     for i in range(len(variable)):
         tempVar = variable[i]
-        n_estimators_value = tempVar[0] * 10
-        max_depth_value = tempVar[1]
-        aucValue = randomForest(n_estimators_value, max_depth_value)
+
+        tree_num_value = (tempVar[0] + 1)* 10
+        eta_value = 0.01 + tempVar[1] * cons_value
+        max_depth_value = 3 + tempVar[2]
+        min_child_weight_value = 1 + tempVar[3]
+
+        aucValue = xgboostModel(tree_num_value, eta_value, max_depth_value, min_child_weight_value, random_seed)
         objvalue.append(aucValue)
     return objvalue #目标函数值objvalue[m] 与个体基因 pop[m] 对应 
 
 
-# 对每个个体进行解码，并拆分成单个变量，返回 n_estimators 和 max_depth
+# 对每个个体进行解码，并拆分成单个变量，返回 tree_num（4）、eta（5）、max_depth（3）、min_child_weight（3）
 def decodechrom(pop):
     variable = []
-    n_estimators_value = [];
-    max_depth_value = [];
     for i in range(len(pop)):
         res = []
         
         # 计算第一个变量值，即 0101->10(逆转)
         temp1 = pop[i][0:4]
-        preValue = 0;
-        for pre in range(4):
-            preValue += temp1[pre] * (math.pow(2, pre))
-        res.append(int(preValue))
+        v1 = 0;
+        for i1 in range(4):
+            v1 += temp1[i1] * (math.pow(2, i1))
+        res.append(int(v1))
         
         # 计算第二个变量值
-        temp2 = pop[i][4:8]
-        aftValue = 0;
-        for aft in range(4):
-            aftValue += temp2[aft] * (math.pow(2, aft))
-        res.append(int(aftValue))
+        temp2 = pop[i][4:9]
+        v2 = 0;
+        for i2 in range(5):
+            v2 += temp2[i2] * (math.pow(2, i2))
+        res.append(int(v2))
+
+        # 计算第三个变量值
+        temp3 = pop[i][9:12]
+        v3 = 0;
+        for i3 in range(3):
+            v3 += temp3[i3] * (math.pow(2, i3))
+        res.append(int(v3))
+
+        # 计算第四个变量值
+        temp4 = pop[i][12:15]
+        v4 = 0;
+        for i4 in range(3):
+            v4 += temp4[i4] * (math.pow(2, i4))
+        res.append(int(v4))
+
         variable.append(res)
     return variable
 
@@ -188,17 +188,35 @@ def best(pop, fit_value):
 
 # Step 5: 每次繁殖，将最好的结果记录下来(将二进制转化为十进制)
 def b2d(best_individual):
+    # 计算第一个变量值
     temp1 = best_individual[0:4]
-    preValue = 0;
-    for pre in range(4):
-        preValue += temp1[pre] * (math.pow(2, pre))
+    v1 = 0;
+    for i1 in range(4):
+        v1 += temp1[i1] * (math.pow(2, i1))
+    v1 = (v1 + 1) * 10
     
     # 计算第二个变量值
-    temp2 = best_individual[4:8]
-    aftValue = 0;
-    for aft in range(4):
-        aftValue += temp2[aft] * (math.pow(2, aft))
-    return int(preValue), int(aftValue)
+    temp2 = best_individual[4:9]
+    v2 = 0;
+    for i2 in range(5):
+        v2 += temp2[i2] * (math.pow(2, i2))
+    v2 = 0.01 + v2 * cons_value
+
+    # 计算第三个变量值
+    temp3 = best_individual[9:12]
+    v3 = 0;
+    for i3 in range(3):
+        v3 += temp3[i3] * (math.pow(2, i3))
+    v3 = 3 + v3
+
+    # 计算第四个变量值
+    temp4 = best_individual[12:15]
+    v4 = 0;
+    for i4 in range(3):
+        v4 += temp4[i4] * (math.pow(2, i4))
+    v4 = 1 + v4
+
+    return int(v1), float(v2), int(v3), int(v4)
 
 
 # Step 6: 自然选择（轮盘赌算法）
@@ -288,8 +306,8 @@ if __name__ == '__main__':
         # print(fit_value)
         [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
         # print("best_individual: "+ str(best_individual))
-        temp_n_estimator, temp_max_depth = b2d(best_individual)
-        results.append([best_fit, temp_n_estimator, temp_max_depth]) #每次繁殖，将最好的结果记录下来
+        v1, v2, v3, v4 = b2d(best_individual)
+        results.append([best_fit, v1, v2, v3, v4]) #每次繁殖，将最好的结果记录下来
         print(str(best_individual) + " " + str(best_fit))
         selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
         crossover(pop, pc) #交叉繁殖

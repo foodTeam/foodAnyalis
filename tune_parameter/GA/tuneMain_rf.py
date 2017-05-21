@@ -20,8 +20,8 @@ pop = [[0, 1, 0, 1, 0, 1, 0, 1] for i in range(pop_size)] # 初始化种群中�
 
 
 '''
-n_estimators 取 {10、20、30、40、50、60、70、80、90、100、110、120、130、140、150}
-max_depth 取 {1、2、3、4、5、6、7、8、9、10、11、12、13、14、15} 
+n_estimators 取 {10、20、30、40、50、60、70、80、90、100、110、120、130、140、150、160}
+max_depth 取 {1、2、3、4、5、6、7、8、9、10、11、12、13、14、15、16} 
 （1111，1111）基因组8位长
 '''
 def randomForest(n_estimators_value, max_depth_value):
@@ -40,11 +40,6 @@ def randomForest(n_estimators_value, max_depth_value):
     train = train.drop('Kind', axis=1)  # 删除训练集的类标
     val = val.drop('Kind', axis=1)  # 删除测试集的类标
 
-    # 防止出现树的棵数或者基分类器个数出现0的情况，可以处理为1
-    if n_estimators_value == 0:
-        n_estimators_value = 1;
-    if max_depth_value == 0:
-        max_depth_value = 1;
     rf = RandomForestClassifier(n_estimators=n_estimators_value,
                                 max_depth=max_depth_value,
                                 n_jobs=2)
@@ -74,8 +69,8 @@ def cal_obj_value(pop):
     variable = decodechrom(pop)
     for i in range(len(variable)):
         tempVar = variable[i]
-        n_estimators_value = tempVar[0] * 10
-        max_depth_value = tempVar[1]
+        n_estimators_value = (tempVar[0] + 1) * 10
+        max_depth_value = tempVar[1] + 1
         aucValue = randomForest(n_estimators_value, max_depth_value)
         objvalue.append(aucValue)
     return objvalue #目标函数值objvalue[m] 与个体基因 pop[m] 对应 
@@ -137,12 +132,15 @@ def b2d(best_individual):
     preValue = 0;
     for pre in range(4):
         preValue += temp1[pre] * (math.pow(2, pre))
+    preValue = preValue + 1
+    preValue = preValue * 10
     
     # 计算第二个变量值
     temp2 = best_individual[4:8]
     aftValue = 0;
     for aft in range(4):
         aftValue += temp2[aft] * (math.pow(2, aft))
+    aftValue = aftValue + 1
     return int(preValue), int(aftValue)
 
 
