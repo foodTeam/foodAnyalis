@@ -7,12 +7,14 @@ import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
-# from xgboost.sklearn import XGBClassifier
+# from xgboost.sklearn import XGBClassifiers
 
 
-
-generations = 500   # 繁殖代数 100
-pop_size = 500      # 种群数量  500
+'''
+群体大小，一般取20~100；终止进化代数，一般取100~500；交叉概率，一般取0.4~0.99；变异概率，一般取0.0001~0.1。
+'''
+generations = 30   # 繁殖代数 100
+pop_size = 200      # 种群数量  500
 max_value = 10      # 基因中允许出现的最大值  
 chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
