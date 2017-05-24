@@ -7,7 +7,7 @@ import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
-# from xgboost.sklearn import XGBClassifier
+# from xgboost.sklearn import XGBClassifiers
 
 
 '''
