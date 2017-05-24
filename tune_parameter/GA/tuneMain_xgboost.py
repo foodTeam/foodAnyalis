@@ -13,13 +13,13 @@ import xgboost as xgb
 '''
 群体大小，一般取20~100；终止进化代数，一般取100~500；交叉概率，一般取0.4~0.99；变异概率，一般取0.0001~0.1。
 '''
-generations = 30   # 繁殖代数 100
-pop_size = 200      # 种群数量  500
+generations = 3   # 繁殖代数 100
+pop_size = 10      # 种群数量  500
 max_value = 10      # 基因中允许出现的最大值  
 chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
 pm = 0.01           # 变异概率  
-results = [[]]      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
+results = []      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
 fit_value = []      # 个体适应度  
 fit_mean = []       # 平均适应度 
 pop = [[0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] for i in range(pop_size)] # 初始化种群中所有个体的基因初始序列
@@ -298,6 +298,15 @@ def mutation(pop, pm):
                 pop[i][mpoint] = 1
 
 
+def writeToFile(var, w_path):
+    f=file(w_path,"a+")
+    for item in var:
+        f.write(str(item) + "\r\n")
+    f.close()
+
+
+
+
 if __name__ == '__main__':
     pop = geneEncoding(pop_size, chrom_length)
     for i in range(generations):
@@ -316,5 +325,7 @@ if __name__ == '__main__':
         mutation(pop, pc) #基因突变
     # print(results)
     results.sort()
+    # wirte results to file
+    writeToFile(results, "generation_" + str(generations) + ".txt")
     print(results[-1])
     # print(xgboostModel(100, 12))
