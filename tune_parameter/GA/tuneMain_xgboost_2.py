@@ -16,7 +16,7 @@ import xgboost as xgb
 # generations = 400   # 繁殖代数 100
 pop_size = 500      # 种群数量  500
 # max_value = 10      # 基因中允许出现的最大值 （可防止离散变量数目达不到2的幂的情况出现，限制最大值，此处不用） 
-chrom_length = 15    # 染色体长度  
+chrom_length = 8    # 染色体长度  （本程序只有两个变量）
 pc = 0.6            # 交配概率  
 pm = 0.01           # 变异概率  
 results = []      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
@@ -30,30 +30,28 @@ cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
 
 
 '''要调试的参数有：（参考：http://xgboost.readthedocs.io/en/latest/parameter.html）
-   tree_num：基树的棵数   ----------------（要调的参数）
+   tree_num：基树的棵数   ----------------（已经确定）
    eta: 学习率（learning_rate），默认值为0.3，范围[0,1]  ----------------（要调的参数）
    max_depth: 最大树深，默认值为6   ----------------（要调的参数）
-   min_child_weight：默认值为1，范围[0, 正无穷]，该参数值越小，越容易 overfitting，当它的值较大时，可以避免模型学习到局部的特殊样本。 ----------（要调的参数）
+   min_child_weight：默认值为1，范围[0, 正无穷]，该参数值越小，越容易 overfitting，当它的值较大时，可以避免模型学习到局部的特殊样本。 ----------（已经确定）
    gamma：默认值为0，min_split_loss，范围[0, 正无穷]
    subsample：选择数据集百分之多少来训练，可以防止过拟合。默认值1，范围(0, 1]，理想值0.8
    colsample_bytree：subsample ratio of columns when constructing each tree，默认值1，范围(0, 1]，理想值0.8，太小的值会造成欠拟合
    lambda：L2 regularization term on weights, increase this value will make model more conservative.参数值越大，模型越不容易过拟合
    alpha：L1 regularization term on weights, increase this value will make model more conservative.参数值越大，模型越不容易过拟合
 
-   上述参数，要调的有4个，其他的采用理想值就可以
-   tree_num: [10、 20、 30、......150、160] 用4位二进制, 0000代表10
+   上述参数，已经确定：tree_num和min_child_weight，要调的有2个，其他的采用理想值就可以
    eta: [0.01, 0.02, 0.03, 0.04, 0.05, ...... 0.19, 0.20]   0.2/0.01=20份，用5位二进制表示足够（2的4次方<20<2的5次方）
        00000 -----> 0.01
        11111 -----> 0.20
        0.01 + 对应十进制*（0.20-0.01）/ (2的5次方-1)
    max_depth:[3、4、5、6、7、8、9、10]   用3位二进制
-   min_child_weight: [1, 2, 3, 4, 5, 6, 7, 8]  用3位二进制
 
-   示例：   0010,         01001,               010,      110  （共15位）
-         tree_num         eta               max_depth  min_child_weight
-        (1+2)*10=30  0.01+9*0.005939=0.06       3+2=5      1+6=7
+   示例：   01001,               010      （共8位）
+           eta               max_depth
+        0.01+9*0.005939=0.06   3+2=5 
 '''
-def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
+def xgboostModel(eta, max_depth, random_seed):
     train_xy = loadFile("../../Data/train-gao.csv")
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
     # 将训练集划分成8:2（训练集与验证集比例）的比例
@@ -76,7 +74,7 @@ def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
         'eval_metric': 'auc',
         'eta': eta,  # 0.02
         'max_depth': max_depth, # 8
-        'min_child_weight': min_child_weight, # 3
+        'min_child_weight': 6, # 3
         'gamma': 0.1,
         'subsample': 0.8,
         'colsample_bytree': 0.8,
@@ -86,7 +84,7 @@ def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
         'nthread': 3,
         'silent': 1
     }
-    model = xgb.train(params, dtrain, num_boost_round=tree_num)
+    model = xgb.train(params, dtrain, num_boost_round=80)
     predict_y = model.predict(dval, ntree_limit=model.best_ntree_limit)
     roc_auc = metrics.roc_auc_score(val_y, predict_y)
     return roc_auc
@@ -115,12 +113,10 @@ def cal_obj_value(pop):
     for i in range(len(variable)):
         tempVar = variable[i]
 
-        tree_num_value = (tempVar[0] + 1)* 10
         eta_value = 0.01 + tempVar[1] * cons_value
         max_depth_value = 3 + tempVar[2]
-        min_child_weight_value = 1 + tempVar[3]
 
-        aucValue = xgboostModel(tree_num_value, eta_value, max_depth_value, min_child_weight_value, random_seed)
+        aucValue = xgboostModel(eta_value, max_depth_value, random_seed)
         objvalue.append(aucValue)
     return objvalue #目标函数值objvalue[m] 与个体基因 pop[m] 对应 
 
@@ -132,32 +128,18 @@ def decodechrom(pop):
         res = []
         
         # 计算第一个变量值，即 0101->10(逆转)
-        temp1 = pop[i][0:4]
+        temp1 = pop[i][0:5]
         v1 = 0;
-        for i1 in range(4):
+        for i1 in range(5):
             v1 += temp1[i1] * (math.pow(2, i1))
         res.append(int(v1))
         
         # 计算第二个变量值
-        temp2 = pop[i][4:9]
+        temp2 = pop[i][5:8]
         v2 = 0;
-        for i2 in range(5):
+        for i2 in range(3):
             v2 += temp2[i2] * (math.pow(2, i2))
         res.append(int(v2))
-
-        # 计算第三个变量值
-        temp3 = pop[i][9:12]
-        v3 = 0;
-        for i3 in range(3):
-            v3 += temp3[i3] * (math.pow(2, i3))
-        res.append(int(v3))
-
-        # 计算第四个变量值
-        temp4 = pop[i][12:15]
-        v4 = 0;
-        for i4 in range(3):
-            v4 += temp4[i4] * (math.pow(2, i4))
-        res.append(int(v4))
 
         variable.append(res)
     return variable
@@ -191,34 +173,20 @@ def best(pop, fit_value):
 # Step 5: 每次繁殖，将最好的结果记录下来(将二进制转化为十进制)
 def b2d(best_individual):
     # 计算第一个变量值
-    temp1 = best_individual[0:4]
+    temp1 = best_individual[0:5]
     v1 = 0;
-    for i1 in range(4):
+    for i1 in range(5):
         v1 += temp1[i1] * (math.pow(2, i1))
-    v1 = (v1 + 1) * 10
-    
+    v1 = 0.01 + v1 * cons_value
+
     # 计算第二个变量值
-    temp2 = best_individual[4:9]
+    temp2 = best_individual[5:8]
     v2 = 0;
-    for i2 in range(5):
+    for i2 in range(3):
         v2 += temp2[i2] * (math.pow(2, i2))
-    v2 = 0.01 + v2 * cons_value
+    v2 = 3 + v2
 
-    # 计算第三个变量值
-    temp3 = best_individual[9:12]
-    v3 = 0;
-    for i3 in range(3):
-        v3 += temp3[i3] * (math.pow(2, i3))
-    v3 = 3 + v3
-
-    # 计算第四个变量值
-    temp4 = best_individual[12:15]
-    v4 = 0;
-    for i4 in range(3):
-        v4 += temp4[i4] * (math.pow(2, i4))
-    v4 = 1 + v4
-
-    return int(v1), float(v2), int(v3), int(v4)
+    return float(v1), int(v2)
 
 
 # Step 6: 自然选择（轮盘赌算法）
@@ -316,8 +284,8 @@ def generAlgo(generations):
         # print(fit_value)
         [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
         # print("best_individual: "+ str(best_individual))
-        v1, v2, v3, v4 = b2d(best_individual)
-        results.append([best_fit, v1, v2, v3, v4]) #每次繁殖，将最好的结果记录下来
+        v1, v2 = b2d(best_individual)
+        results.append([best_fit, v1, v2]) #每次繁殖，将最好的结果记录下来
         # print(str(best_individual) + " " + str(best_fit))
         selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
         crossover(pop, pc) #交叉繁殖
@@ -327,31 +295,9 @@ def generAlgo(generations):
     # wirte results to file
     writeToFile(results, "generation_" + str(generations) + ".txt")
     print(results[-1])
-    # print(xgboostModel(100, 12))
 
 
 if __name__ == '__main__':
     gen = [100, 200, 300, 400, 500]
     for g in gen:
         generAlgo(int(g))
-    # pop = geneEncoding(pop_size, chrom_length)
-    # for i in range(generations):
-    #     print("第 " + str(i) + " 代开始繁殖......")
-    #     obj_value = cal_obj_value(pop) # 计算目标函数值
-    #     # print(obj_value)
-    #     fit_value = calfitvalue(obj_value); #计算个体的适应值
-    #     # print(fit_value)
-    #     [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
-    #     # print("best_individual: "+ str(best_individual))
-    #     v1, v2, v3, v4 = b2d(best_individual)
-    #     results.append([best_fit, v1, v2, v3, v4]) #每次繁殖，将最好的结果记录下来
-    #     print(str(best_individual) + " " + str(best_fit))
-    #     selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
-    #     crossover(pop, pc) #交叉繁殖
-    #     mutation(pop, pc) #基因突变
-    # # print(results)
-    # results.sort()
-    # # wirte results to file
-    # writeToFile(results, "generation_" + str(generations) + ".txt")
-    # print(results[-1])
-    # # print(xgboostModel(100, 12))
