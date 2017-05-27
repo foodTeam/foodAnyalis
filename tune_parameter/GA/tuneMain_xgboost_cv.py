@@ -17,7 +17,11 @@ from sklearn.model_selection import cross_val_score
 群体大小，一般取20~100；终止进化代数，一般取100~500；交叉概率，一般取0.4~0.99；变异概率，一般取0.0001~0.1。
 '''
 # generations = 400   # 繁殖代数 100
+<<<<<<< HEAD
+pop_size = 500      # 种群数量  500
+=======
 pop_size = 100      # 种群数量  500
+>>>>>>> fad65af1752eb3305fbab4f7df947741f7d156af
 # max_value = 10      # 基因中允许出现的最大值 （可防止离散变量数目达不到2的幂的情况出现，限制最大值，此处不用） 
 chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
@@ -111,7 +115,11 @@ def cal_obj_value(pop):
         min_child_weight_value = 1 + tempVar[3]
 
         aucValue = xgboostModel(tree_num_value, eta_value, max_depth_value, min_child_weight_value, random_seed)
+<<<<<<< HEAD
+        print(aucValue)
+=======
         # print(aucValue)
+>>>>>>> fad65af1752eb3305fbab4f7df947741f7d156af
         objvalue.append(aucValue)
     return objvalue #目标函数值objvalue[m] 与个体基因 pop[m] 对应 
 
