@@ -7,6 +7,7 @@ import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
+from random import randint
 # from xgboost.sklearn import XGBClassifiers
 
 
@@ -82,7 +83,7 @@ def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
         'colsample_bytree': 0.8,
         'lambda': 550,
         'alpha': 19,
-        'seed': random_seed,
+        'seed': randint(1,10000),
         'nthread': 3,
         'silent': 1
     }
@@ -110,7 +111,7 @@ def geneEncoding(pop_size, chrom_length):
 
 # Step 2 : 计算个体的目标函数值
 def cal_obj_value(pop):
-    objvalue = [];
+    objvalue = []
     variable = decodechrom(pop)
     for i in range(len(variable)):
         tempVar = variable[i]
@@ -133,28 +134,28 @@ def decodechrom(pop):
         
         # 计算第一个变量值，即 0101->10(逆转)
         temp1 = pop[i][0:4]
-        v1 = 0;
+        v1 = 0
         for i1 in range(4):
             v1 += temp1[i1] * (math.pow(2, i1))
         res.append(int(v1))
         
         # 计算第二个变量值
         temp2 = pop[i][4:9]
-        v2 = 0;
+        v2 = 0
         for i2 in range(5):
             v2 += temp2[i2] * (math.pow(2, i2))
         res.append(int(v2))
 
         # 计算第三个变量值
         temp3 = pop[i][9:12]
-        v3 = 0;
+        v3 = 0
         for i3 in range(3):
             v3 += temp3[i3] * (math.pow(2, i3))
         res.append(int(v3))
 
         # 计算第四个变量值
         temp4 = pop[i][12:15]
-        v4 = 0;
+        v4 = 0
         for i4 in range(3):
             v4 += temp4[i4] * (math.pow(2, i4))
         res.append(int(v4))
@@ -167,7 +168,7 @@ def decodechrom(pop):
 def calfitvalue(obj_value):
     fit_value = []
     temp = 0.0
-    Cmin = 0;
+    Cmin = 0
     for i in range(len(obj_value)):
         if(obj_value[i] + Cmin > 0):
             temp = Cmin + obj_value[i]
@@ -192,28 +193,28 @@ def best(pop, fit_value):
 def b2d(best_individual):
     # 计算第一个变量值
     temp1 = best_individual[0:4]
-    v1 = 0;
+    v1 = 0
     for i1 in range(4):
         v1 += temp1[i1] * (math.pow(2, i1))
     v1 = (v1 + 1) * 10
     
     # 计算第二个变量值
     temp2 = best_individual[4:9]
-    v2 = 0;
+    v2 = 0
     for i2 in range(5):
         v2 += temp2[i2] * (math.pow(2, i2))
     v2 = 0.01 + v2 * cons_value
 
     # 计算第三个变量值
     temp3 = best_individual[9:12]
-    v3 = 0;
+    v3 = 0
     for i3 in range(3):
         v3 += temp3[i3] * (math.pow(2, i3))
     v3 = 3 + v3
 
     # 计算第四个变量值
     temp4 = best_individual[12:15]
-    v4 = 0;
+    v4 = 0
     for i4 in range(3):
         v4 += temp4[i4] * (math.pow(2, i4))
     v4 = 1 + v4
@@ -231,7 +232,7 @@ def selection(pop, fit_value):
     # 计算每个适应值的累积概率
     cumsum(new_fit_value)
     # 生成随机浮点数序列
-    ms = [];
+    ms = []
     pop_len = len(pop)
     for i in range(pop_len):
         ms.append(random.random())
@@ -258,14 +259,14 @@ def sum(fit_value):
 
 # 计算累积概率
 def cumsum(fit_value):
-    temp=[];
+    temp=[]
     for i in range(len(fit_value)):
-        t = 0;
-        j = 0;
+        t = 0
+        j = 0
         while(j <= i):
             t += fit_value[j]
             j = j + 1
-        temp.append(t);
+        temp.append(t)
     for i in range(len(fit_value)):
         fit_value[i]=temp[i]
 
@@ -312,7 +313,7 @@ def generAlgo(generations):
         # print("第 " + str(i) + " 代开始繁殖......")
         obj_value = cal_obj_value(pop) # 计算目标函数值
         # print(obj_value)
-        fit_value = calfitvalue(obj_value); #计算个体的适应值
+        fit_value = calfitvalue(obj_value) #计算个体的适应值
         # print(fit_value)
         [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
         # print("best_individual: "+ str(best_individual))
@@ -339,7 +340,11 @@ if __name__ == '__main__':
     #     print("第 " + str(i) + " 代开始繁殖......")
     #     obj_value = cal_obj_value(pop) # 计算目标函数值
     #     # print(obj_value)
+<<<<<<< HEAD
     #     fit_value = calfitvalue(obj_value); #计算个体的适应值
+=======
+    #     fit_value = calfitvalue(obj_value) #计算个体的适应值
+>>>>>>> fad65af1752eb3305fbab4f7df947741f7d156af
     #     # print(fit_value)
     #     [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
     #     # print("best_individual: "+ str(best_individual))

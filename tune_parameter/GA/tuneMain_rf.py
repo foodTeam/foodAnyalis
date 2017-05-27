@@ -65,7 +65,7 @@ def geneEncoding(pop_size, chrom_length):
 
 # Step 2 : 计算个体的目标函数值
 def cal_obj_value(pop):
-    objvalue = [];
+    objvalue = []
     variable = decodechrom(pop)
     for i in range(len(variable)):
         tempVar = variable[i]
@@ -79,21 +79,21 @@ def cal_obj_value(pop):
 # 对每个个体进行解码，并拆分成单个变量，返回 n_estimators 和 max_depth
 def decodechrom(pop):
     variable = []
-    n_estimators_value = [];
-    max_depth_value = [];
+    n_estimators_value = []
+    max_depth_value = []
     for i in range(len(pop)):
         res = []
         
         # 计算第一个变量值，即 0101->10(逆转)
         temp1 = pop[i][0:4]
-        preValue = 0;
+        preValue = 0
         for pre in range(4):
             preValue += temp1[pre] * (math.pow(2, pre))
         res.append(int(preValue))
         
         # 计算第二个变量值
         temp2 = pop[i][4:8]
-        aftValue = 0;
+        aftValue = 0
         for aft in range(4):
             aftValue += temp2[aft] * (math.pow(2, aft))
         res.append(int(aftValue))
@@ -105,7 +105,7 @@ def decodechrom(pop):
 def calfitvalue(obj_value):
     fit_value = []
     temp = 0.0
-    Cmin = 0;
+    Cmin = 0
     for i in range(len(obj_value)):
         if(obj_value[i] + Cmin > 0):
             temp = Cmin + obj_value[i]
@@ -129,7 +129,7 @@ def best(pop, fit_value):
 # Step 5: 每次繁殖，将最好的结果记录下来(将二进制转化为十进制)
 def b2d(best_individual):
     temp1 = best_individual[0:4]
-    preValue = 0;
+    preValue = 0
     for pre in range(4):
         preValue += temp1[pre] * (math.pow(2, pre))
     preValue = preValue + 1
@@ -137,7 +137,7 @@ def b2d(best_individual):
     
     # 计算第二个变量值
     temp2 = best_individual[4:8]
-    aftValue = 0;
+    aftValue = 0
     for aft in range(4):
         aftValue += temp2[aft] * (math.pow(2, aft))
     aftValue = aftValue + 1
@@ -154,7 +154,7 @@ def selection(pop, fit_value):
     # 计算每个适应值的累积概率
     cumsum(new_fit_value)
     # 生成随机浮点数序列
-    ms = [];
+    ms = []
     pop_len = len(pop)
     for i in range(pop_len):
         ms.append(random.random())
@@ -181,14 +181,14 @@ def sum(fit_value):
 
 # 计算累积概率
 def cumsum(fit_value):
-    temp=[];
+    temp=[]
     for i in range(len(fit_value)):
-        t = 0;
-        j = 0;
+        t = 0
+        j = 0
         while(j <= i):
             t += fit_value[j]
             j = j + 1
-        temp.append(t);
+        temp.append(t)
     for i in range(len(fit_value)):
         fit_value[i]=temp[i]
 
@@ -227,7 +227,7 @@ if __name__ == '__main__':
         print("第 " + str(i) + " 代开始繁殖......")
         obj_value = cal_obj_value(pop) # 计算目标函数值
         # print(obj_value)
-        fit_value = calfitvalue(obj_value); #计算个体的适应值
+        fit_value = calfitvalue(obj_value) #计算个体的适应值
         # print(fit_value)
         [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
         # print("best_individual: "+ str(best_individual))
