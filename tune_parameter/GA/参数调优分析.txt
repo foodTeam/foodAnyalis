@@ -12,12 +12,3 @@ mac下参数调优分析-1：
                     min_child_weight = 6
                     max_depth: 3-10
                     eta: 0.14、0.15(两个值)
-
-train: val = 0.8:0.2
-
-mac下参数调优分析-2：（验证集比0.2，其他都是0.3，为了测试稳定性）
-           100-500间结果显示：
-                    n_estimators = 80
-                    min_child_weight = 4
-                    max_depth: 3-10
-                    eta: 

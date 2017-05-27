@@ -3,6 +3,8 @@ import pandas as pd
 import xgboost as xgb
 from sklearn import metrics
 import matplotlib.pylab as plt
+from sklearn.metrics import classification_report
+from xgboost.sklearn import XGBClassifier
 
 '''
 AUC Score (Train): 0.847222
@@ -12,7 +14,7 @@ def drawAucLine():
     pass
 
 
-# 训练模型并预测出结果
+# 训练模型并预测出结果-1
 def train_model(train_xy, test_xy, random_seed):
     test_ID = test_xy.ID
     test_y = test_xy.Kind
@@ -29,21 +31,22 @@ def train_model(train_xy, test_xy, random_seed):
     params = {
         'booster': 'gbtree',  # gbtree used
         'objective': 'binary:logistic',
-        'early_stopping_rounds': 50,
+        # 'early_stopping_rounds': 50,
         # 'scale_pos_weight': 0.63,  # 正样本权重
         'eval_metric': 'auc',
-        'gamma': 0,
-        'max_depth': 3,
-        # 'lambda': 550,
-        'subsample': 0.8,
-        'colsample_bytree': 0.8,
-        'min_child_weight': 1,
-        'eta': 0.17,
-        'seed': random_seed,
+        # 'gamma': 0,
+        # 'max_depth': 3,
+        # # 'lambda': 550,
+        # 'subsample': 0.8,
+        # 'colsample_bytree': 0.8,
+        # 'min_child_weight': 1,
+        # 'eta': 0.08,
+        # 'seed': random_seed,
         'nthread': 3,
         'silent': 1
     }
-    model = xgb.train(params, dtrain, num_boost_round=90)
+    # model = xgb.train(params, dtrain, num_boost_round=90)
+    model = xgb.train(params, dtrain)
     print('best_ntree_limit:', model.best_ntree_limit)
     predict_y = model.predict(dtest, ntree_limit=model.best_ntree_limit) # 预测结果为概率
     print(predict_y)
@@ -58,7 +61,125 @@ def train_model(train_xy, test_xy, random_seed):
     # print(fea_importance)
 
 
+# 训练模型并预测出结果-2
+def train_model2(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_child_weight, random_seed):
+    test_ID = test_xy.ID
+    test_y = test_xy.Kind
+    test_xy = test_xy.drop(['ID'], axis=1)
+    test_xy = test_xy.drop(['Kind'], axis=1)
+
+    train_y = train_xy.Kind
+    train_xy = train_xy.drop(['ID'], axis=1)
+    train_xy = train_xy.drop(['Kind'], axis=1)
+
+
+    xgb_model = XGBClassifier(
+            n_estimators = n_estimators,
+            learning_rate = learning_rate,
+            max_depth = max_depth,
+            min_child_weight =min_child_weight,
+            gamma = 0.1,
+            subsample = 0.8,
+            colsample_bytree = 0.8,
+            objective = 'binary:logistic',
+            nthread = 4,
+            seed = random_seed)
+    # 训练
+    xgb_model.fit(train_xy, train_y)
+    y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
+    # 输出auc值
+    print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, y_pred_proba)
+    # 输出混淆矩阵
+    y_pred = xgb_model.predict(test_xy)
+    report = classification_report(test_y, y_pred)
+    print(report)
+
+
+# 训练模型并预测出结果-3(default)
+def train_model3(train_xy, test_xy, random_seed):
+    test_ID = test_xy.ID
+    test_y = test_xy.Kind
+    test_xy = test_xy.drop(['ID'], axis=1)
+    test_xy = test_xy.drop(['Kind'], axis=1)
+
+    train_y = train_xy.Kind
+    train_xy = train_xy.drop(['ID'], axis=1)
+    train_xy = train_xy.drop(['Kind'], axis=1)
+
+
+    xgb_model = XGBClassifier(
+            # n_estimators = n_estimators,
+            # learning_rate = learning_rate,
+            # max_depth = max_depth,
+            # min_child_weight =min_child_weight,
+            # gamma = 0.1,
+            # subsample = 0.8,
+            # colsample_bytree = 0.8,
+            objective = 'binary:logistic',
+            nthread = 4,
+            # seed = random_seed
+            )
+    # 训练
+    xgb_model.fit(train_xy, train_y)
+    y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
+    # 输出auc值
+    print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, y_pred_proba)
+    # 输出混淆矩阵
+    y_pred = xgb_model.predict(test_xy)
+    report = classification_report(test_y, y_pred)
+    print(report)
+
+
+# 训练模型并预测出结果-4(cholesterol、ca、fat、na、protein、calories和carbohydrate)
+def train_model4(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_child_weight, random_seed):
+    test_ID = test_xy.ID
+    test_y = test_xy.Kind
+    test_xy = test_xy.drop(['ID'], axis=1)
+    test_xy = test_xy.drop(['Kind'], axis=1)
+    test_xy = test_xy.loc[:, ['cholesterol', 'ca', 'fat', 'na', 'protein', 'calories', 'carbohydrate']]
+
+
+    train_y = train_xy.Kind
+    train_xy = train_xy.drop(['ID'], axis=1)
+    train_xy = train_xy.drop(['Kind'], axis=1)
+    train_xy = train_xy.loc[:, ['cholesterol', 'ca', 'fat', 'na', 'protein', 'calories', 'carbohydrate']]
+
+
+    xgb_model = XGBClassifier(
+            n_estimators = n_estimators,
+            learning_rate = learning_rate,
+            max_depth = max_depth,
+            min_child_weight =min_child_weight,
+            gamma = 0.1,
+            subsample = 0.8,
+            colsample_bytree = 0.8,
+            objective = 'binary:logistic',
+            nthread = 4,
+            seed = random_seed)
+    # 训练
+    xgb_model.fit(train_xy, train_y)
+    y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
+    # 输出auc值
+    print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, y_pred_proba)
+    # 输出混淆矩阵
+    y_pred = xgb_model.predict(test_xy)
+    report = classification_report(test_y, y_pred)
+    print(report)
+
+
 if __name__ == '__main__':
     train_xy = pd.read_csv("Data/train-gao.csv")
     test_xy = pd.read_csv("Data/test-gao.csv")
-    train_model(train_xy, test_xy, 12)
+    # n_estimators, learning_rate(eta), max_depth, min_child_weight
+    print("---默认值-----------")
+    train_model3(train_xy, test_xy, 12)
+    print("---n_estimators=140, learning_rate(eta)=0.2, max_depth=6, min_child_weight=4-----")
+    train_model2(train_xy, test_xy, 140, 0.2, 6, 4, 12)
+    print("---n_estimators=120, learning_rate(eta)=0.17, max_depth=8, min_child_weight=3-----")
+    train_model2(train_xy, test_xy, 120, 0.17, 3, 2, 12)
+    print("---n_estimators=140, learning_rate(eta)=0.18, max_depth=8, min_child_weight=3-----")
+    train_model2(train_xy, test_xy, 140, 0.18, 8, 3, 12)
+    print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=3, min_child_weight=1-----")
+    train_model2(train_xy, test_xy, 90, 0.17, 3, 1, 12)
+    print("---最主要7个特征----")
+    train_model4(train_xy, test_xy, 90, 0.17, 3, 1, 12)
