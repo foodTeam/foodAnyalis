@@ -7,7 +7,10 @@ import math
 from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
-# from xgboost.sklearn import XGBClassifiers
+from random import randint
+# from sklearn import metrics, cross_validation
+from xgboost.sklearn import XGBClassifier
+from sklearn.model_selection import cross_val_score
 
 
 '''
@@ -56,41 +59,28 @@ cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
 def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
     train_xy = loadFile("../../Data/train-gao.csv")
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
-    # 将训练集划分成8:2（训练集与验证集比例）的比例
-    train, val = train_test_split(
-        train_xy, test_size=0.2, random_state=80)
+    train_y = train_xy.Kind
+    train_x = train_xy.drop('Kind', axis=1)
 
-    train_y = train.Kind
-    train_x = train.drop('Kind', axis=1)
-    dtrain = xgb.DMatrix(train_x, label=train_y)
-
-    val_y = val.Kind
-    val_x = val.drop('Kind', axis=1)
-    dval = xgb.DMatrix(val_x)
-
-    params = {
-        'booster': 'gbtree',  # gbtree used
-        'objective': 'binary:logistic',
-        'early_stopping_rounds': 100,
-        # 'scale_pos_weight': 0.13,  # 正样本权重
-        'eval_metric': 'auc',
-        'eta': eta,  # 0.02
-        'max_depth': max_depth, # 8
-        'min_child_weight': min_child_weight, # 3
-        'gamma': 0.1,
-        'subsample': 0.8,
-        'colsample_bytree': 0.8,
-        'lambda': 550,
-        'alpha': 19,
-        'seed': random_seed,
-        'nthread': 3,
-        'silent': 1
-    }
-    model = xgb.train(params, dtrain, num_boost_round=tree_num)
-    predict_y = model.predict(dval, ntree_limit=model.best_ntree_limit)
-    roc_auc = metrics.roc_auc_score(val_y, predict_y)
-    return roc_auc
-
+    xgb_model = XGBClassifier(
+            learning_rate = eta,
+            n_estimators = tree_num,
+            max_depth = max_depth,
+            min_child_weight =min_child_weight,
+            gamma = 0.1,
+            subsample = 0.8,
+            colsample_bytree = 0.8,
+            objective = 'binary:logistic',
+            nthread = 4,
+            seed = random_seed)
+   
+    scores = cross_val_score(xgb_model, train_x, train_y, cv = 10, scoring='roc_auc')
+    # print(scores)
+    sum = 0.0
+    score_len = len(scores)
+    for score in scores:
+        sum += score
+    return sum / score_len
 
 
 def loadFile(filePath):
@@ -110,7 +100,7 @@ def geneEncoding(pop_size, chrom_length):
 
 # Step 2 : 计算个体的目标函数值
 def cal_obj_value(pop):
-    objvalue = [];
+    objvalue = []
     variable = decodechrom(pop)
     for i in range(len(variable)):
         tempVar = variable[i]
@@ -121,6 +111,7 @@ def cal_obj_value(pop):
         min_child_weight_value = 1 + tempVar[3]
 
         aucValue = xgboostModel(tree_num_value, eta_value, max_depth_value, min_child_weight_value, random_seed)
+        print(aucValue)
         objvalue.append(aucValue)
     return objvalue #目标函数值objvalue[m] 与个体基因 pop[m] 对应 
 
@@ -133,28 +124,28 @@ def decodechrom(pop):
         
         # 计算第一个变量值，即 0101->10(逆转)
         temp1 = pop[i][0:4]
-        v1 = 0;
+        v1 = 0
         for i1 in range(4):
             v1 += temp1[i1] * (math.pow(2, i1))
         res.append(int(v1))
         
         # 计算第二个变量值
         temp2 = pop[i][4:9]
-        v2 = 0;
+        v2 = 0
         for i2 in range(5):
             v2 += temp2[i2] * (math.pow(2, i2))
         res.append(int(v2))
 
         # 计算第三个变量值
         temp3 = pop[i][9:12]
-        v3 = 0;
+        v3 = 0
         for i3 in range(3):
             v3 += temp3[i3] * (math.pow(2, i3))
         res.append(int(v3))
 
         # 计算第四个变量值
         temp4 = pop[i][12:15]
-        v4 = 0;
+        v4 = 0
         for i4 in range(3):
             v4 += temp4[i4] * (math.pow(2, i4))
         res.append(int(v4))
@@ -167,7 +158,7 @@ def decodechrom(pop):
 def calfitvalue(obj_value):
     fit_value = []
     temp = 0.0
-    Cmin = 0;
+    Cmin = 0
     for i in range(len(obj_value)):
         if(obj_value[i] + Cmin > 0):
             temp = Cmin + obj_value[i]
@@ -192,28 +183,28 @@ def best(pop, fit_value):
 def b2d(best_individual):
     # 计算第一个变量值
     temp1 = best_individual[0:4]
-    v1 = 0;
+    v1 = 0
     for i1 in range(4):
         v1 += temp1[i1] * (math.pow(2, i1))
     v1 = (v1 + 1) * 10
     
     # 计算第二个变量值
     temp2 = best_individual[4:9]
-    v2 = 0;
+    v2 = 0
     for i2 in range(5):
         v2 += temp2[i2] * (math.pow(2, i2))
     v2 = 0.01 + v2 * cons_value
 
     # 计算第三个变量值
     temp3 = best_individual[9:12]
-    v3 = 0;
+    v3 = 0
     for i3 in range(3):
         v3 += temp3[i3] * (math.pow(2, i3))
     v3 = 3 + v3
 
     # 计算第四个变量值
     temp4 = best_individual[12:15]
-    v4 = 0;
+    v4 = 0
     for i4 in range(3):
         v4 += temp4[i4] * (math.pow(2, i4))
     v4 = 1 + v4
@@ -231,7 +222,7 @@ def selection(pop, fit_value):
     # 计算每个适应值的累积概率
     cumsum(new_fit_value)
     # 生成随机浮点数序列
-    ms = [];
+    ms = []
     pop_len = len(pop)
     for i in range(pop_len):
         ms.append(random.random())
@@ -258,14 +249,14 @@ def sum(fit_value):
 
 # 计算累积概率
 def cumsum(fit_value):
-    temp=[];
+    temp=[]
     for i in range(len(fit_value)):
-        t = 0;
-        j = 0;
+        t = 0
+        j = 0
         while(j <= i):
             t += fit_value[j]
             j = j + 1
-        temp.append(t);
+        temp.append(t)
     for i in range(len(fit_value)):
         fit_value[i]=temp[i]
 
@@ -312,7 +303,7 @@ def generAlgo(generations):
         # print("第 " + str(i) + " 代开始繁殖......")
         obj_value = cal_obj_value(pop) # 计算目标函数值
         # print(obj_value)
-        fit_value = calfitvalue(obj_value); #计算个体的适应值
+        fit_value = calfitvalue(obj_value) #计算个体的适应值
         # print(fit_value)
         [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
         # print("best_individual: "+ str(best_individual))
@@ -325,7 +316,7 @@ def generAlgo(generations):
     # print(results)
     results.sort()
     # wirte results to file
-    writeToFile(results, "generation_" + str(generations) + ".txt")
+    writeToFile(results, "generation_cv_" + str(generations) + ".txt")
     print(results[-1])
     # print(xgboostModel(100, 12))
 
@@ -339,7 +330,7 @@ if __name__ == '__main__':
     #     print("第 " + str(i) + " 代开始繁殖......")
     #     obj_value = cal_obj_value(pop) # 计算目标函数值
     #     # print(obj_value)
-    #     fit_value = calfitvalue(obj_value); #计算个体的适应值
+    #     fit_value = calfitvalue(obj_value) #计算个体的适应值
     #     # print(fit_value)
     #     [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
     #     # print("best_individual: "+ str(best_individual))

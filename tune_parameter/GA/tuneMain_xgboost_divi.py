@@ -13,16 +13,16 @@ import xgboost as xgb
 '''
 群体大小，一般取20~100；终止进化代数，一般取100~500；交叉概率，一般取0.4~0.99；变异概率，一般取0.0001~0.1。
 '''
-# generations = 400   # 繁殖代数 100
+generations = 300   # 繁殖代数 100，200，300，400，500
 pop_size = 500      # 种群数量  500
-# max_value = 10      # 基因中允许出现的最大值 （可防止离散变量数目达不到2的幂的情况出现，限制最大值，此处不用） 
+max_value = 10      # 基因中允许出现的最大值  
 chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
 pm = 0.01           # 变异概率  
 results = []      # 存储每一代的最优解，N个三元组（auc最高值, n_estimators, max_depth）  
 fit_value = []      # 个体适应度  
 fit_mean = []       # 平均适应度 
-# pop = [[0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] for i in range(pop_size)] # 初始化种群中所有个体的基因初始序列
+pop = [[0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0] for i in range(pop_size)] # 初始化种群中所有个体的基因初始序列
 
 random_seed = 20
 cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
@@ -58,7 +58,7 @@ def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
     # 将训练集划分成8:2（训练集与验证集比例）的比例
     train, val = train_test_split(
-        train_xy, test_size=0.2, random_state=80)
+        train_xy, test_size=0.3, random_state=80)
 
     train_y = train.Kind
     train_x = train.drop('Kind', axis=1)
@@ -291,7 +291,7 @@ def mutation(pop, pm):
     py = len(pop[0])
     for i in range(px):
         if(random.random() < pm):
-            mpoint = random.randint(0, py-1)
+            mpoint = random.randint(0,py-1)
             if(pop[i][mpoint] == 1):
                 pop[i][mpoint] = 0
             else:
@@ -305,11 +305,12 @@ def writeToFile(var, w_path):
     f.close()
 
 
-def generAlgo(generations):
+
+
+if __name__ == '__main__':
     pop = geneEncoding(pop_size, chrom_length)
-    print(str(generations)+" start...")
     for i in range(generations):
-        # print("第 " + str(i) + " 代开始繁殖......")
+        print("第 " + str(i) + " 代开始繁殖......")
         obj_value = cal_obj_value(pop) # 计算目标函数值
         # print(obj_value)
         fit_value = calfitvalue(obj_value); #计算个体的适应值
@@ -318,7 +319,7 @@ def generAlgo(generations):
         # print("best_individual: "+ str(best_individual))
         v1, v2, v3, v4 = b2d(best_individual)
         results.append([best_fit, v1, v2, v3, v4]) #每次繁殖，将最好的结果记录下来
-        # print(str(best_individual) + " " + str(best_fit))
+        print(str(best_individual) + " " + str(best_fit))
         selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
         crossover(pop, pc) #交叉繁殖
         mutation(pop, pc) #基因突变
@@ -328,30 +329,3 @@ def generAlgo(generations):
     writeToFile(results, "generation_" + str(generations) + ".txt")
     print(results[-1])
     # print(xgboostModel(100, 12))
-
-
-if __name__ == '__main__':
-    gen = [100, 200, 300, 400, 500]
-    for g in gen:
-        generAlgo(int(g))
-    # pop = geneEncoding(pop_size, chrom_length)
-    # for i in range(generations):
-    #     print("第 " + str(i) + " 代开始繁殖......")
-    #     obj_value = cal_obj_value(pop) # 计算目标函数值
-    #     # print(obj_value)
-    #     fit_value = calfitvalue(obj_value); #计算个体的适应值
-    #     # print(fit_value)
-    #     [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
-    #     # print("best_individual: "+ str(best_individual))
-    #     v1, v2, v3, v4 = b2d(best_individual)
-    #     results.append([best_fit, v1, v2, v3, v4]) #每次繁殖，将最好的结果记录下来
-    #     print(str(best_individual) + " " + str(best_fit))
-    #     selection(pop, fit_value) #自然选择，淘汰掉一部分适应性低的个体
-    #     crossover(pop, pc) #交叉繁殖
-    #     mutation(pop, pc) #基因突变
-    # # print(results)
-    # results.sort()
-    # # wirte results to file
-    # writeToFile(results, "generation_" + str(generations) + ".txt")
-    # print(results[-1])
-    # # print(xgboostModel(100, 12))
