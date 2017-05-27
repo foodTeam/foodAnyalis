@@ -33,24 +33,25 @@ def train_model(train_xy, test_xy, random_seed):
         # 'scale_pos_weight': 0.63,  # 正样本权重
         'eval_metric': 'auc',
         'gamma': 0,
-        'max_depth': 5,
+        'max_depth': 3,
         # 'lambda': 550,
-        'subsample': 0.6,
-        'colsample_bytree': 0.9,
+        'subsample': 0.8,
+        'colsample_bytree': 0.8,
         'min_child_weight': 1,
-        'eta': 0.02,
+        'eta': 0.17,
         'seed': random_seed,
         'nthread': 3,
         'silent': 1
     }
-    model = xgb.train(params, dtrain, num_boost_round=100)
+    model = xgb.train(params, dtrain, num_boost_round=90)
     print('best_ntree_limit:', model.best_ntree_limit)
     predict_y = model.predict(dtest, ntree_limit=model.best_ntree_limit) # 预测结果为概率
     print(predict_y)
     # print "Accuracy : %.4g" % metrics.accuracy_score(test_y, predict_y)#评估模型准确率的函数
     print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, predict_y)
     fea_importance = model.get_fscore()
-    print(fea_importance)
+    # fea_importance.sort()
+    # print(fea_importance)
     # fea_importance.plot(kind='bar', title='Feature Importances')
     # plt.ylabel('Feature Importance Score')
     # plt.show()
