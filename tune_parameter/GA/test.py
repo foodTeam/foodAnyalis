@@ -22,5 +22,7 @@ if __name__ == '__main__':
     # df.plot()  不需要
     # cons_value = (0.20-0.01）/ (32 - 0.01) # 0.19 / 31.99
     # print(cons_value)
-    x = randint(1,10000)
-    print(x)
+    # x = randint(1,10000)
+    # print(x)
+    t = [i/100.0 for i in range(1,21)]
+    print(t)

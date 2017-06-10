@@ -183,3 +183,84 @@ if __name__ == '__main__':
     train_model2(train_xy, test_xy, 90, 0.17, 3, 1, 12)
     print("---最主要7个特征----")
     train_model4(train_xy, test_xy, 90, 0.17, 3, 1, 12)
+    print("---网格搜索最优参数(单个调试)----")
+    train_model2(train_xy, test_xy, 40, 0.04, 4, 6, 12)
+    print("---网格搜索最优参数(所有参数共同调试)----")
+    train_model2(train_xy, test_xy, 20, 0.19, 3, 1, 12)
+    '''
+    ---默认值-----------
+---默认值-----------
+AUC Score (Train): 0.868519
+             precision    recall  f1-score   support
+
+          0       0.85      0.55      0.67        40
+          1       0.81      0.95      0.87        81
+
+avg / total       0.82      0.82      0.81       121
+
+---n_estimators=140, learning_rate(eta)=0.2, max_depth=6, min_child_weight=4-----
+AUC Score (Train): 0.857099
+             precision    recall  f1-score   support
+
+          0       0.70      0.53      0.60        40
+          1       0.79      0.89      0.84        81
+
+avg / total       0.76      0.77      0.76       121
+
+---n_estimators=120, learning_rate(eta)=0.17, max_depth=8, min_child_weight=3-----
+AUC Score (Train): 0.865432
+             precision    recall  f1-score   support
+
+          0       0.79      0.57      0.67        40
+          1       0.82      0.93      0.87        81
+
+avg / total       0.81      0.81      0.80       121
+
+---n_estimators=140, learning_rate(eta)=0.18, max_depth=8, min_child_weight=3-----
+AUC Score (Train): 0.879321
+             precision    recall  f1-score   support
+
+          0       0.79      0.55      0.65        40
+          1       0.81      0.93      0.86        81
+
+avg / total       0.80      0.80      0.79       121
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=3, min_child_weight=1-----
+AUC Score (Train): 0.875309
+             precision    recall  f1-score   support
+
+          0       0.79      0.55      0.65        40
+          1       0.81      0.93      0.86        81
+
+avg / total       0.80      0.80      0.79       121
+
+---最主要7个特征----
+AUC Score (Train): 0.850309
+             precision    recall  f1-score   support
+
+          0       0.73      0.60      0.66        40
+          1       0.82      0.89      0.85        81
+
+avg / total       0.79      0.79      0.79       121
+
+---网格搜索最优参数(单个调试)----
+AUC Score (Train): 0.821605
+             precision    recall  f1-score   support
+
+          0       0.83      0.47      0.60        40
+          1       0.79      0.95      0.86        81
+
+avg / total       0.80      0.79      0.78       121
+
+---网格搜索最优参数(所有参数共同调试)----
+AUC Score (Train): 0.845988
+             precision    recall  f1-score   support
+
+          0       0.74      0.50      0.60        40
+          1       0.79      0.91      0.85        81
+
+avg / total       0.77      0.78      0.76       121
+
+[Finished in 2.5s]
+    '''
+
