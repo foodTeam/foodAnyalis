@@ -67,10 +67,12 @@ def train_model2(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_
     test_y = test_xy.Kind
     test_xy = test_xy.drop(['ID'], axis=1)
     test_xy = test_xy.drop(['Kind'], axis=1)
+    test_xy = test_xy.loc[:,['fat','vte']]
 
     train_y = train_xy.Kind
     train_xy = train_xy.drop(['ID'], axis=1)
     train_xy = train_xy.drop(['Kind'], axis=1)
+    train_xy = train_xy.loc[:,['fat','vte']]
 
 
     xgb_model = XGBClassifier(
@@ -204,6 +206,7 @@ if __name__ == '__main__':
 
 
     '''
+    全部元素
     ---默认参数-----
 AUC Score (Train): 1.000000
              precision    recall  f1-score   support
@@ -276,6 +279,76 @@ feature importance:
   0.03521127  0.          0.00704225  0.02112676  0.02816901  0.02112676
   0.          0.00704225  0.02112676  0.01408451  0.02816901]
 AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+[Finished in 3.0s]
+    '''
+
+
+    '''
+    只有两个元素：'fat','vte'
+    ---默认参数-----
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=3, min_child_weight=1-----
+feature importance:
+[ 0.49640289  0.50359714]
+AUC Score (Train): 0.987092
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=4, min_child_weight=1-----
+feature importance:
+[ 0.46206897  0.53793103]
+AUC Score (Train): 0.987092
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=5, min_child_weight=1-----
+feature importance:
+[ 0.4527027  0.5472973]
+AUC Score (Train): 0.988451
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=6, min_child_weight=1-----
+feature importance:
+[ 0.4527027  0.5472973]
+AUC Score (Train): 0.988451
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=7, min_child_weight=1-----
+feature importance:
+[ 0.4527027  0.5472973]
+AUC Score (Train): 0.988451
              precision    recall  f1-score   support
 
           0       0.89      1.00      0.94        16
