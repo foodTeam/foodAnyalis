@@ -8,6 +8,7 @@ from sklearn import metrics
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from random import randint
+from sklearn.utils import shuffle  
 # from xgboost.sklearn import XGBClassifiers
 
 
@@ -55,11 +56,40 @@ cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
         (1+2)*10=30  0.01+9*0.005939=0.06       3+2=5      1+6=7
 '''
 def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
-    train_xy = loadFile("../../Data/train-gao.csv")
-    train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
-    # 将训练集划分成8:2（训练集与验证集比例）的比例
-    train, val = train_test_split(
-        train_xy, test_size=0.2, random_state=80)
+    train_xy_0 = loadFile("../../../Data/stomach-all-0.csv")
+    train_xy_1 = loadFile("../../../Data/stomach-all-1.csv")
+
+    train_xy_0 = train_xy_0.drop('ID', axis=1) 
+    train_xy_1 = train_xy_1.drop('ID', axis=1) 
+
+    train_xy_0 = shuffle(train_xy_0)
+    train_xy_1 = shuffle(train_xy_1)
+
+    # 找到 0 和 1 的总条数
+    len_0 = len(train_xy_0.index)
+    len_divid_0 = int(len_0 * 0.6)
+    len_1 = len(train_xy_1.index)
+    len_divid_1 = int(len_1 * 0.6)
+
+    train_0 = train_xy_0[0:len_divid_0] # 取 70%
+    val_xy_0 = train_xy_0[len_divid_0:] # 取 30%
+
+    train_1 = train_xy_1[0:len_divid_1] # 取 70%
+    val_xy_1 = train_xy_1[len_divid_1:] # 取 30%
+
+    train = train_0.append(train_1)
+    val = val_xy_0.append(val_xy_1)
+
+    # train = 
+    # val = 
+
+    # train_xy = loadFile("../../../Data/stomach-all-double.csv")
+    # train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
+    # train_xy = shuffle(train_xy)
+
+    # # 将训练集划分成8:2（训练集与验证集比例）的比例
+    # train, val = train_test_split(
+    #     train_xy, test_size=0.4, random_state=random_seed)
 
     train_y = train.Kind
     train_x = train.drop('Kind', axis=1)
@@ -79,11 +109,12 @@ def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
         'max_depth': max_depth, # 8
         'min_child_weight': min_child_weight, # 3
         'gamma': 0.1,
-        'subsample': 0.8,
-        'colsample_bytree': 0.8,
+        'subsample': 0.7,
+        'colsample_bytree': 0.7,
         'lambda': 550,
         'alpha': 19,
-        'seed': randint(1,10000),
+        'seed': random_seed,
+        # 'seed': randint(1,10000),
         'nthread': 3,
         'silent': 1
     }
@@ -326,7 +357,7 @@ def generAlgo(generations):
     # print(results)
     results.sort()
     # wirte results to file
-    writeToFile(results, "generation_" + str(generations) + ".txt")
+    writeToFile(results, "generation_stomach_" + str(generations) + ".txt")
     print(results[-1])
     # print(xgboostModel(100, 12))
 
@@ -340,11 +371,7 @@ if __name__ == '__main__':
     #     print("第 " + str(i) + " 代开始繁殖......")
     #     obj_value = cal_obj_value(pop) # 计算目标函数值
     #     # print(obj_value)
-<<<<<<< HEAD
     #     fit_value = calfitvalue(obj_value); #计算个体的适应值
-=======
-    #     fit_value = calfitvalue(obj_value) #计算个体的适应值
->>>>>>> fad65af1752eb3305fbab4f7df947741f7d156af
     #     # print(fit_value)
     #     [best_individual, best_fit] = best(pop, fit_value) #选出最好的个体和最好的函数值
     #     # print("best_individual: "+ str(best_individual))

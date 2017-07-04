@@ -87,6 +87,8 @@ def train_model2(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_
     # 训练
     xgb_model.fit(train_xy, train_y)
     y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
+    print('feature importance:')
+    print(xgb_model.feature_importances_)
     # 输出auc值
     print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, y_pred_proba)
     # 输出混淆矩阵
@@ -160,7 +162,7 @@ def train_model4(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_
     xgb_model.fit(train_xy, train_y)
     y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
     # 输出auc值
-    print "AUC Score (Train): %f" % metrics.roc_auc_score(test_y, y_pred_proba)
+    print "AUC Score : %f" % metrics.roc_auc_score(test_y, y_pred_proba)
     # 输出混淆矩阵
     y_pred = xgb_model.predict(test_xy)
     report = classification_report(test_y, y_pred)
@@ -168,8 +170,8 @@ def train_model4(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_
 
 
 if __name__ == '__main__':
-    train_xy = pd.read_csv("Data/train-gao.csv")
-    test_xy = pd.read_csv("Data/test-gao.csv")
+    train_xy = pd.read_csv("Data/train-stomach.csv")
+    test_xy = pd.read_csv("Data/test-stomach.csv")
     # n_estimators, learning_rate(eta), max_depth, min_child_weight
     # print("---默认值-----------")
     # train_model3(train_xy, test_xy, 12)
@@ -187,6 +189,100 @@ if __name__ == '__main__':
     # train_model2(train_xy, test_xy, 40, 0.04, 4, 6, 12)
     # print("---网格搜索最优参数(所有参数共同调试)----")
     # train_model2(train_xy, test_xy, 20, 0.19, 3, 1, 12)
+    print("---默认参数-----")
+    train_model3(train_xy, test_xy, 12)
     print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=3, min_child_weight=1-----")
     train_model2(train_xy, test_xy, 90, 0.17, 3, 1, 12)
+    print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=4, min_child_weight=1-----")
+    train_model2(train_xy, test_xy, 90, 0.17, 4, 1, 12)
+    print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=5, min_child_weight=1-----")
+    train_model2(train_xy, test_xy, 90, 0.17, 5, 1, 12)
+    print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=6, min_child_weight=1-----")
+    train_model2(train_xy, test_xy, 90, 0.17, 6, 1, 12)
+    print("---n_estimators=90, learning_rate(eta)=0.17, max_depth=7, min_child_weight=1-----")
+    train_model2(train_xy, test_xy, 90, 0.17, 7, 1, 12)
+
+
+    '''
+    ---默认参数-----
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=3, min_child_weight=1-----
+feature importance:
+[ 0.07801419  0.0141844   0.22695035  0.07092199  0.02836879  0.
+  0.03546099  0.19858156  0.0212766   0.0141844   0.0141844   0.08510638
+  0.04255319  0.          0.0070922   0.02836879  0.02836879  0.02836879
+  0.          0.0070922   0.0212766   0.0141844   0.03546099]
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=4, min_child_weight=1-----
+feature importance:
+[ 0.07042254  0.02112676  0.22535211  0.07746479  0.03521127  0.00704225
+  0.03521127  0.20422535  0.01408451  0.01408451  0.01408451  0.09859155
+  0.03521127  0.          0.00704225  0.02112676  0.02816901  0.02112676
+  0.          0.00704225  0.02112676  0.01408451  0.02816901]
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=5, min_child_weight=1-----
+feature importance:
+[ 0.07042254  0.02112676  0.22535211  0.07746479  0.03521127  0.00704225
+  0.03521127  0.20422535  0.01408451  0.01408451  0.01408451  0.09859155
+  0.03521127  0.          0.00704225  0.02112676  0.02816901  0.02112676
+  0.          0.00704225  0.02112676  0.01408451  0.02816901]
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=6, min_child_weight=1-----
+feature importance:
+[ 0.07042254  0.02112676  0.22535211  0.07746479  0.03521127  0.00704225
+  0.03521127  0.20422535  0.01408451  0.01408451  0.01408451  0.09859155
+  0.03521127  0.          0.00704225  0.02112676  0.02816901  0.02112676
+  0.          0.00704225  0.02112676  0.01408451  0.02816901]
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+---n_estimators=90, learning_rate(eta)=0.17, max_depth=7, min_child_weight=1-----
+feature importance:
+[ 0.07042254  0.02112676  0.22535211  0.07746479  0.03521127  0.00704225
+  0.03521127  0.20422535  0.01408451  0.01408451  0.01408451  0.09859155
+  0.03521127  0.          0.00704225  0.02112676  0.02816901  0.02112676
+  0.          0.00704225  0.02112676  0.01408451  0.02816901]
+AUC Score (Train): 1.000000
+             precision    recall  f1-score   support
+
+          0       0.89      1.00      0.94        16
+          1       1.00      0.96      0.98        46
+
+avg / total       0.97      0.97      0.97        62
+
+[Finished in 3.0s]
+    '''
 
