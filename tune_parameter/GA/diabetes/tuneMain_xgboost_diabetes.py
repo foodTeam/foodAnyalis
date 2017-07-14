@@ -55,7 +55,7 @@ cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
         (1+2)*10=30  0.01+9*0.005939=0.06       3+2=5      1+6=7
 '''
 def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
-    train_xy = loadFile("../../Data/train-gao.csv")
+    train_xy = loadFile("../../../Data/diabetes-all.csv")
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
     # 将训练集划分成8:2（训练集与验证集比例）的比例
     train, val = train_test_split(
