@@ -88,6 +88,12 @@ def train_model2(train_xy, test_xy, n_estimators, learning_rate, max_depth, min_
     # 训练
     xgb_model.fit(train_xy, train_y)
     y_pred_proba = xgb_model.predict_proba(test_xy)[:, 1]
+    test_ID = list(test_ID)
+    test_y = list(test_y)
+    # print(test_ID)
+    for i in range(len(y_pred_proba)):
+        print(str(test_ID[i]) + "-----" + str(test_y[i]) + "------" + str(y_pred_proba[i]))
+    print()
     # print(type(train_xy))
     print(train_xy.columns)
     print('feature importance:')
