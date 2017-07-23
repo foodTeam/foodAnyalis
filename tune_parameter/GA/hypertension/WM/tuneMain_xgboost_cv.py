@@ -17,11 +17,7 @@ from sklearn.model_selection import cross_val_score
 群体大小，一般取20~100；终止进化代数，一般取100~500；交叉概率，一般取0.4~0.99；变异概率，一般取0.0001~0.1。
 '''
 # generations = 400   # 繁殖代数 100
-<<<<<<< HEAD
 pop_size = 500      # 种群数量  500
-=======
-pop_size = 100      # 种群数量  500
->>>>>>> fad65af1752eb3305fbab4f7df947741f7d156af
 # max_value = 10      # 基因中允许出现的最大值 （可防止离散变量数目达不到2的幂的情况出现，限制最大值，此处不用） 
 chrom_length = 15    # 染色体长度  
 pc = 0.6            # 交配概率  
@@ -61,7 +57,7 @@ cons_value = 0.19 / 31 # (0.20-0.01）/ (32 - 1)
         (1+2)*10=30  0.01+9*0.005939=0.06       3+2=5      1+6=7
 '''
 def xgboostModel(tree_num, eta, max_depth, min_child_weight, random_seed):
-    train_xy = loadFile("../../Data/train-gao.csv")
+    train_xy = loadFile("../../../Data/train-gao.csv")
     train_xy = train_xy.drop('ID', axis=1)  # 删除训练集的ID
     train_y = train_xy.Kind
     train_x = train_xy.drop('Kind', axis=1)
